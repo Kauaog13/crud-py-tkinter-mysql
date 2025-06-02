@@ -2,3 +2,4 @@ mysql-connector-python
 ttkthemes
 python-dotenv
 messagebox
+validate-docbr
