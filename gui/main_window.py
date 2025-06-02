@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 class AplicacaoAlunos:
     def __init__(self, root):
-        # ... (conteúdo do __init__ como antes, mas remova a referência a self.validar_formato_cpf se ela só existia para o vcmd)
         self.root = root
         self.root.title("Cadastro de Alunos - FacSenac")
         self.root.geometry("1250x750") 
@@ -32,30 +31,21 @@ class AplicacaoAlunos:
 
         self._is_formatting_cpf_programmatically = False
 
+        # --- Definição dos Comandos de Validação ---
         self.vcmd_cpf_char_control = (self.root.register(self.validar_char_cpf_digitacao), '%S', '%d')
-        self.vcmd_data_formato = (self.root.register(self.validar_formato_data_digitacao), '%d', '%P')
+        # GARANTIR QUE A LINHA ABAIXO ESTEJA CORRETA E PRESENTE:
+        self.vcmd_data_formato = (self.root.register(self.validar_formato_data_digitacao), '%d', '%P') 
         self.vcmd_telefone_formato = (self.root.register(self.validar_formato_telefone_digitacao), '%d', '%P')
 
+        # Ordem de criação dos widgets
         self.criar_widgets_barra_superior()
-        self.criar_widgets_formulario()
-        self.criar_widgets_busca_filtro()
+        self.criar_widgets_formulario() # O erro ocorre aqui se vcmd_data_formato não estiver definido
+        self.criar_widgets_busca_filtro() 
         self.criar_widgets_botoes() 
         self.criar_widgets_tabela()
         self.criar_barra_status()
 
         self.carregar_alunos_na_tabela()
-    
-    # Remova a função self.validar_formato_cpf(self, action_code, new_value_if_allowed)
-    # se ela só era usada para o validatecommand do CPF que foi substituído pela auto-formatação.
-    # A validação de formato final será feita em validar_campos_obrigatorios usando regex
-    # ou confiando na validação do backend.
-
-    # ... (manter configurar_estilos_widgets, carregar_icones, criar_widgets_barra_superior, alternar_tema) ...
-    # ... (manter validar_char_cpf_digitacao, formatar_cpf_em_tempo_real, _reset_cpf_formatting_flag) ...
-    # ... (manter validar_formato_data_digitacao, validar_formato_telefone_digitacao) ...
-    # ... (manter validar_email_e_atualizar_feedback, validar_campo_final_e_atualizar_feedback) ...
-    # ... (manter criar_widgets_formulario - já configurado para usar vcmd_cpf_char_control e formatar_cpf_em_tempo_real) ...
-    # ... (manter todos os outros métodos como criar_widgets_busca_filtro, etc. até validar_campos_obrigatorios) ...
 
     def configurar_estilos_widgets(self):
         style = ttk.Style()
@@ -71,7 +61,11 @@ class AplicacaoAlunos:
     def carregar_icones(self):
         logger.debug("Carregando ícones...")
         base_path = os.path.join(os.path.dirname(__file__), "assets")
-        icon_files = { "add": "add.png", "edit": "edit.png", "delete": "delete.png", "clear": "clear.png", "theme": "theme_icon.png", "export_csv": "export_csv.png" }
+        icon_files = { 
+            "add": "add.png", "edit": "edit.png", "delete": "delete.png",
+            "clear": "clear.png", "theme": "theme_icon.png",
+            "export_csv": "export_csv.png"
+        }
         self.icons = {}
         for name, filename in icon_files.items():
             path = os.path.join(base_path, filename)
@@ -82,7 +76,9 @@ class AplicacaoAlunos:
         logger.debug("Criando widgets da barra superior.")
         self.frame_barra_superior = ttk.Frame(self.root, padding=(5,5))
         self.frame_barra_superior.pack(fill=tk.X, side=tk.TOP, padx=10, pady=(5,0))
-        self.btn_toggle_theme = ttk.Button(self.frame_barra_superior, text="Alternar Tema", image=self.icons.get("theme"), compound=tk.LEFT if self.icons.get("theme") else tk.NONE, command=self.alternar_tema)
+        self.btn_toggle_theme = ttk.Button(self.frame_barra_superior, text="Alternar Tema", 
+                                           image=self.icons.get("theme"), compound=tk.LEFT if self.icons.get("theme") else tk.NONE,
+                                           command=self.alternar_tema)
         self.btn_toggle_theme.pack(side=tk.RIGHT)
 
     def alternar_tema(self):
@@ -95,11 +91,20 @@ class AplicacaoAlunos:
             try:
                 default_entry_bg = style.lookup('TEntry', 'fieldbackground')
                 style.configure("Normal.TEntry", fieldbackground=default_entry_bg)
-            except tk.TclError: style.configure("Normal.TEntry", fieldbackground="white") 
-            fields_to_reset_style = [ getattr(self, 'entry_email', None), getattr(self, 'entry_cpf', None), getattr(self, 'entry_data_nasc', None), getattr(self, 'entry_telefone', None), getattr(self, 'entry_nome', None), getattr(self, 'entry_sobrenome', None), getattr(self, 'entry_cidade', None), getattr(self, 'entry_uf', None)]
+            except tk.TclError:
+                style.configure("Normal.TEntry", fieldbackground="white") 
+            
+            fields_to_reset_style = [ 
+                getattr(self, 'entry_nome', None), getattr(self, 'entry_sobrenome', None),
+                getattr(self, 'entry_email', None), getattr(self, 'entry_cpf', None),
+                getattr(self, 'entry_data_nasc', None), getattr(self, 'entry_telefone', None),
+                getattr(self, 'entry_cidade', None), getattr(self, 'entry_uf', None)
+            ]
             for field in fields_to_reset_style:
                 if field and isinstance(field, ttk.Entry): field.configure(style="Normal.TEntry")
-            self.atualizar_status(f"Tema alterado para {new_theme}.", duracao_ms=3000); logger.info(f"Tema alterado com sucesso para {new_theme}.")
+
+            self.atualizar_status(f"Tema alterado para {new_theme}.", duracao_ms=3000)
+            logger.info(f"Tema alterado com sucesso para {new_theme}.")
         except tk.TclError as e:
             logger.error(f"Falha ao carregar tema '{new_theme}': {e}")
             messagebox.showwarning("Erro de Tema", f"Não foi possível carregar o tema '{new_theme}'.")
@@ -120,19 +125,24 @@ class AplicacaoAlunos:
     def formatar_cpf_em_tempo_real(self, event=None):
         if self._is_formatting_cpf_programmatically: return
         self._is_formatting_cpf_programmatically = True
+        
         valor_atual_entry = self.entry_cpf_var.get()
         try: cursor_pos_atual = self.entry_cpf.index(tk.INSERT)
         except tk.TclError: cursor_pos_atual = len(valor_atual_entry)
+
         digitos = "".join(filter(str.isdigit, valor_atual_entry))[:11]
         cpf_formatado = ""
         if len(digitos) > 9: cpf_formatado = f"{digitos[:3]}.{digitos[3:6]}.{digitos[6:9]}-{digitos[9:]}"
         elif len(digitos) > 6: cpf_formatado = f"{digitos[:3]}.{digitos[3:6]}.{digitos[6:]}"
         elif len(digitos) > 3: cpf_formatado = f"{digitos[:3]}.{digitos[3:]}"
         else: cpf_formatado = digitos
+        
         self.entry_cpf_var.set(cpf_formatado)
+
         digitos_antes_cursor_original = 0
         for i in range(min(cursor_pos_atual, len(valor_atual_entry))):
             if valor_atual_entry[i].isdigit(): digitos_antes_cursor_original += 1
+        
         nova_pos_cursor = 0; digitos_contados_no_formatado = 0
         for char_formatado in cpf_formatado:
             nova_pos_cursor += 1
@@ -146,23 +156,30 @@ class AplicacaoAlunos:
         nova_pos_cursor = min(nova_pos_cursor, len(cpf_formatado))
         try: self.entry_cpf.icursor(nova_pos_cursor)
         except tk.TclError: logger.debug("Não foi possível definir cursor no CPF (sem foco).")
+        
         self.root.after_idle(self._reset_cpf_formatting_flag)
         logger.debug(f"CPF formatado para: {cpf_formatado}, cursor em: {nova_pos_cursor} (tentativa)")
 
-    def _reset_cpf_formatting_flag(self): self._is_formatting_cpf_programmatically = False
+    def _reset_cpf_formatting_flag(self):
+        self._is_formatting_cpf_programmatically = False
 
-    def validar_formato_data_digitacao(self, action_code, new_value_if_allowed):
-        if action_code == '0': return True
-        if len(new_value_if_allowed) > 10: return False
+    # Função de validação para o formato de data DD/MM/AAAA durante a digitação
+    def validar_formato_data_digitacao(self, action_code_str, new_value_if_allowed):
+        action_code = int(action_code_str) # Convertido para int, embora não usado nesta versão da função
+        if new_value_if_allowed == "": return True # Permite apagar completamente
+        if len(new_value_if_allowed) > 10: return False # Limita comprimento DD/MM/AAAA
+
         for i, char in enumerate(new_value_if_allowed):
-            if i in [2, 5]:
+            if i in [2, 5]: # Posições das barras '/'
                 if char != '/': return False
-            else:
+            else: # Outras posições devem ser dígitos
                 if not char.isdigit(): return False
         return True
 
-    def validar_formato_telefone_digitacao(self, action_code, new_value_if_allowed):
-        if action_code == '0': return True
+    def validar_formato_telefone_digitacao(self, action_code_str, new_value_if_allowed):
+        action_code = int(action_code_str)
+        if action_code == 0: return True # Permite deleção
+        
         max_len = 15 
         if len(new_value_if_allowed) > max_len: return False
         is_valid = True
@@ -173,16 +190,18 @@ class AplicacaoAlunos:
                 if char != ')': is_valid = False; break
             elif i == 4:
                 if char != ' ': is_valid = False; break
-            elif (max_len == 15 and i == 10) or (max_len == 14 and i == 9):
+            elif (max_len == 15 and i == 10) or (max_len == 14 and i == 9): # Traço
                 if char != '-': is_valid = False; break
             elif i in [1, 2, 5, 6, 7, 8] or \
                  (max_len == 15 and i in [9, 11, 12, 13, 14]) or \
-                 (max_len == 14 and i in [10, 11, 12, 13]):
+                 (max_len == 14 and i in [10, 11, 12, 13]): # Dígitos
                 if not char.isdigit(): is_valid = False; break
-            elif char not in "()- " and not char.isdigit():
-                if not ( (i in [0,3,4,9,10] and char in "()- ") ):
-                     if not char.isdigit(): is_valid = False; break
-        if not is_valid:
+            # Se o caractere não é um separador esperado E não é um dígito, é inválido.
+            # Esta checagem também impede que separadores sejam digitados em posições de dígitos.
+            elif char not in "()- " and not char.isdigit(): 
+                 is_valid = False; break
+        
+        if not is_valid: # Tenta validar para formato de 14 caracteres se o de 15 falhou
             if len(new_value_if_allowed) <= 14:
                 is_valid_14 = True
                 for i_14, char_14 in enumerate(new_value_if_allowed):
@@ -192,60 +211,62 @@ class AplicacaoAlunos:
                         if char_14 != ')': is_valid_14 = False; break
                     elif i_14 == 4:
                         if char_14 != ' ': is_valid_14 = False; break
-                    elif i_14 == 9:
+                    elif i_14 == 9: # Traço para fixo
                         if char_14 != '-': is_valid_14 = False; break
-                    elif i_14 in [1, 2, 5, 6, 7, 8, 10, 11, 12, 13]:
+                    elif i_14 in [1, 2, 5, 6, 7, 8, 10, 11, 12, 13]: # Dígitos para fixo
                         if not char_14.isdigit(): is_valid_14 = False; break
                     elif char_14 not in "()- " and not char_14.isdigit():
-                         if not ( (i_14 in [0,3,4,9] and char_14 in "()- ") ):
-                            if not char_14.isdigit(): is_valid_14 = False; break
+                         is_valid_14 = False; break
                 return is_valid_14
             return False
         return True
 
     def validar_email_e_atualizar_feedback(self, event=None):
         email_str = self.entry_email_var.get().strip()
-        if not hasattr(self, 'entry_email'): return
-        if not email_str: self.entry_email.configure(style="Normal.TEntry"); return
+        widget = getattr(self, 'entry_email', None)
+        if not widget: return 
+
+        if not email_str: widget.configure(style="Normal.TEntry"); return
         valido, msg = validators.validar_email_formato(email_str)
-        if valido: self.entry_email.configure(style="Valid.TEntry"); logger.debug(f"Email '{email_str}' ok (FocusOut).")
-        else: self.entry_email.configure(style="Invalid.TEntry"); logger.warning(f"Email '{email_str}' inválido (FocusOut): {msg}")
+        if valido: widget.configure(style="Valid.TEntry"); logger.debug(f"Email '{email_str}' ok (FocusOut).")
+        else: widget.configure(style="Invalid.TEntry"); logger.warning(f"Email '{email_str}' inválido (FocusOut): {msg}")
 
     def validar_campo_final_e_atualizar_feedback(self, event, nome_campo):
-        widget = None; val_str = ""; valido = True; msg = ""
+        widget = None; val_str = ""; valido = True; msg_erro = ""
+        
         if nome_campo == 'cpf':
             widget = self.entry_cpf; val_str = self.entry_cpf_var.get().strip()
             if val_str: 
-                # A auto-formatação já deve ter garantido o formato visual ###.###.###-##
-                # Então, chamamos diretamente o validador de algoritmo.
-                # Se a auto-formatação não for perfeita, a validação de formato no backend pegaria.
-                # Para a GUI, podemos confiar na formatação em tempo real e validar o algoritmo aqui.
-                if not re.fullmatch(r"\d{3}\.\d{3}\.\d{3}-\d{2}", val_str): # Checagem final do formato da máscara
-                    valido = False; msg = "Formato de CPF final inválido (deve ser ###.###.###-##)."
-                else:
-                    valido, msg = validators.validar_cpf_completo(val_str) # Valida algoritmo
-            else: widget.configure(style="Normal.TEntry"); return 
+                if not re.fullmatch(r"\d{3}\.\d{3}\.\d{3}-\d{2}", val_str): 
+                    valido = False; msg_erro = "CPF: Formato final inválido (###.###.###-##)."
+                else: 
+                    valido, msg_erro = validators.validar_cpf_completo(val_str)
         elif nome_campo == 'data_nasc':
             widget = self.entry_data_nasc; val_str = self.entry_data_nasc_var.get().strip()
             if val_str:
-                if not self.validar_formato_data_digitacao('1', val_str): valido = False; msg = "Formato Data Nasc. inválido (DD/MM/AAAA)."
+                if not self.validar_formato_data_digitacao('1', val_str): valido = False; msg_erro = "Data Nasc.: Formato DD/MM/AAAA inválido."
                 else:
                     try: datetime.strptime(val_str, '%d/%m/%Y')
-                    except ValueError: valido = False; msg = "Data Nasc. inválida (dia/mês não existe)."
+                    except ValueError: valido = False; msg_erro = "Data Nasc.: Dia ou mês inválido."
                     if valido:
                         data_nasc_db = self._formatar_data_para_db(val_str)
-                        if data_nasc_db: valido, msg = validators.validar_data_nascimento_e_idade(data_nasc_db)
-                        else: valido = False; msg = "Erro formatação data para verificação de idade."
-            else: widget.configure(style="Normal.TEntry"); return
+                        if data_nasc_db: valido, msg_erro = validators.validar_data_nascimento_e_idade(data_nasc_db)
+                        else: valido = False; msg_erro = "Data Nasc.: Erro interno de formatação para idade."
         elif nome_campo == 'telefone':
             widget = self.entry_telefone; val_str = self.entry_telefone_var.get().strip()
-            if val_str: valido, msg = validators.validar_telefone_formato(val_str) # Usa o validador completo
-            else: widget.configure(style="Normal.TEntry"); return
+            if val_str: 
+                valido, msg_erro = validators.validar_telefone_formato(val_str) # Usa validador de backend para formato final
 
-        if widget:
-            if valido: widget.configure(style="Valid.TEntry"); logger.debug(f"Campo '{nome_campo}' ('{val_str}') OK (FocusOut).")
-            else: widget.configure(style="Invalid.TEntry"); logger.warning(f"Campo '{nome_campo}' ('{val_str}') Inválido (FocusOut): {msg}")
-
+        if widget: # Aplica feedback se o campo não estiver vazio (val_str foi preenchido)
+            if not val_str: # Se o campo ficou vazio após FocusOut, reseta para Normal
+                 widget.configure(style="Normal.TEntry")
+            elif valido: 
+                widget.configure(style="Valid.TEntry")
+                logger.debug(f"Campo '{nome_campo}' ('{val_str}') OK (FocusOut).")
+            else: 
+                widget.configure(style="Invalid.TEntry")
+                logger.warning(f"Campo '{nome_campo}' ('{val_str}') Inválido (FocusOut): {msg_erro}")
+    
     def criar_widgets_formulario(self):
         logger.debug("Criando widgets do formulário.")
         self.frame_formulario = ttk.LabelFrame(self.root, text="Dados do Aluno", padding=(15, 10))
@@ -310,6 +331,7 @@ class AplicacaoAlunos:
 
         self.frame_formulario.columnconfigure(1, weight=1); self.frame_formulario.columnconfigure(3, weight=1)
 
+    # --- Definição de criar_widgets_busca_filtro ---
     def criar_widgets_busca_filtro(self):
         logger.debug("Criando widgets de busca/filtro.")
         self.frame_busca = ttk.LabelFrame(self.root, text="Busca e Filtro", padding=(10,5))
@@ -462,7 +484,6 @@ class AplicacaoAlunos:
 
     def validar_campos_obrigatorios(self):
         logger.debug("Executando validação final de campos obrigatórios e formatos.")
-        
         def aplicar_feedback_e_falhar(widget_attr_name, mensagem_erro, nome_campo_log): # Helper
             widget = getattr(self, widget_attr_name, None)
             if widget and isinstance(widget, ttk.Entry): widget.configure(style="Invalid.TEntry"); widget.focus_set()
@@ -479,13 +500,10 @@ class AplicacaoAlunos:
 
         if not nome or not sobrenome or not curso: messagebox.showwarning("Campos Obrigatórios", "Nome, Sobrenome e Curso são obrigatórios."); return False
         
-        # Validação CPF: Formato da máscara visual + Validação de algoritmo (do utils)
         if cpf_str:
-            if not re.fullmatch(r"\d{3}\.\d{3}\.\d{3}-\d{2}", cpf_str): 
-                return aplicar_feedback_e_falhar('entry_cpf', "CPF: Formato final inválido (###.###.###-##).", "CPF_Mascara_Final")
-            valido_cpf_alg, msg_cpf_alg = validators.validar_cpf_completo(cpf_str) # Usa o validador do backend
-            if not valido_cpf_alg: 
-                return aplicar_feedback_e_falhar('entry_cpf', msg_cpf_alg, "CPF_Algoritmo")
+            if not re.fullmatch(r"\d{3}\.\d{3}\.\d{3}-\d{2}", cpf_str): return aplicar_feedback_e_falhar('entry_cpf', "CPF: Formato inválido (###.###.###-##).", "CPF_Mascara_Final")
+            valido_cpf_alg, msg_cpf_alg = validators.validar_cpf_completo(cpf_str)
+            if not valido_cpf_alg: return aplicar_feedback_e_falhar('entry_cpf', msg_cpf_alg, "CPF_Algoritmo")
             self.entry_cpf.configure(style="Valid.TEntry")
         
         if email_str:
@@ -499,20 +517,14 @@ class AplicacaoAlunos:
             self.entry_telefone.configure(style="Valid.TEntry")
         
         if data_nasc_str_gui:
-            # Validação da máscara de digitação
-            if not self.validar_formato_data_digitacao('1', data_nasc_str_gui): 
-                return aplicar_feedback_e_falhar('entry_data_nasc', "Data Nasc.: Formato DD/MM/AAAA inválido.", "DataNasc_Mascara")
-            # Validação semântica da data (dia/mês existe)
+            if not self.validar_formato_data_digitacao('1', data_nasc_str_gui): return aplicar_feedback_e_falhar('entry_data_nasc', "Data Nasc.: Formato DD/MM/AAAA inválido.", "DataNasc_Mascara")
             try: datetime.strptime(data_nasc_str_gui, '%d/%m/%Y')
             except ValueError: return aplicar_feedback_e_falhar('entry_data_nasc', "Data Nasc.: Dia ou mês inválido.", "DataNasc_Semantica")
-            
-            # Validação de idade
             data_nasc_para_backend = self._formatar_data_para_db(data_nasc_str_gui)
             if data_nasc_para_backend:
                 valido_idade, msg_idade = validators.validar_data_nascimento_e_idade(data_nasc_para_backend)
                 if not valido_idade: return aplicar_feedback_e_falhar('entry_data_nasc', msg_idade, "DataNasc_Idade")
-            else: # Erro na formatação interna, já logado por _formatar_data_para_db
-                 return aplicar_feedback_e_falhar('entry_data_nasc', "Data Nasc.: Erro interno de formatação.", "DataNasc_FormatacaoInterna")
+            else: return aplicar_feedback_e_falhar('entry_data_nasc', "Data Nasc.: Erro interno de formatação.", "DataNasc_FormatacaoInterna")
             self.entry_data_nasc.configure(style="Valid.TEntry")
 
         logger.debug("Validação final de campos na GUI passou.")
