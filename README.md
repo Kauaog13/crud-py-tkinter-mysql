@@ -1,6 +1,6 @@
-# Sistema de Cadastro de Alunos - FacSenac 🧑‍🎓
+# 🧑‍🎓 Sistema de Cadastro de Alunos - FacSenac 🧑‍🎓
 
-Este é um projeto de um sistema de Gerenciamento de Cadastro de Alunos (CRUD completo) desenvolvido em Python, com interface gráfica utilizando Tkinter e ttkthemes, e banco de dados MySQL. A aplicação permite criar, visualizar, atualizar, deletar, buscar, filtrar, ordenar e exportar registros de alunos.
+Este é um projeto de um sistema de Gerenciamento de Cadastro de Alunos (CRUD completo) desenvolvido em Python, com interface gráfica utilizando Tkinter e ttkthemes, e banco de dados MySQL. A aplicação permite criar, visualizar, atualizar, deletar, buscar, filtrar, ordenar e exportar registros de alunos. 📝
 
 ## Funcionalidades Principais ✨
 
@@ -76,22 +76,19 @@ crud-py-tkinter-mysql/
 Siga estas instruções para configurar e executar o projeto em seu ambiente local.
 
 ### 1. Pré-requisitos
-
 * **Python 3.x:** Certifique-se de ter o Python instalado. Você pode baixá-lo em [python.org](https://www.python.org/downloads/).
 * **MySQL Server:** Você precisa de uma instância do MySQL Server rodando. Você pode usar o MySQL Community Server, XAMPP, WAMP, Docker, etc.
 * **Git:** Para clonar o repositório (se estiver em um).
 
 ### 2. Clonar o Repositório (Opcional)
-
-Se o projeto estiver em um repositório Git, clone-o:
+↕️Se o projeto estiver em um repositório Git, clone-o:
 ```bash
 git clone https://github.com/Kauaog13/crud-py-tkinter-mysql.git
 cd crud-py-tkinter-mysql
 ```
 
 ### 3. Instalar Dependências
-
-Com o ambiente virtual ativado, instale as bibliotecas listadas no requirements.txt:
+📤 Com o ambiente virtual ativado, instale as bibliotecas listadas no requirements.txt:
 
 ```Bash
 pip install -r requirements.txt
@@ -107,8 +104,7 @@ O arquivo requirements.txt deve conter:
 Observação: messagebox faz parte do tkinter e não precisa ser listado no requirements.txt para instalação via pip.
 
 ### 4. Configurar o Banco de Dados MySQL
-
-Crie o Banco de Dados facsenac e conecte-se ao servidor
+🗂️Crie o Banco de Dados facsenac e conecte-se ao servidor
 ```Bash
 CREATE DATABASE IF NOT EXISTS facsenac DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -130,7 +126,7 @@ CREATE TABLE IF NOT EXISTS alunos (
 
 ### 5. Configurar o Arquivo .env (Muito Importante!)
 Este arquivo armazena suas credenciais de banco de dados e outras configurações de forma segura, fora do código.  
-- Na pasta raiz do seu projeto (ex: crud-py-tkinter-mysql/), crie um arquivo chamado exatamente .env.
+🔒 Na pasta raiz do seu projeto (ex: crud-py-tkinter-mysql/), crie um arquivo chamado exatamente .env.
 ```Bash
 DB_HOST=[seu_local_host]
 DB_USER=[seu_usuario]
@@ -145,12 +141,12 @@ VALIDATE_CPF_STRICTLY=[True] or [False]
 * **`DB_NAME`**: O nome do banco de dados que você criou (ex: `facsenac`).
 * **`VALIDATE_CPF_STRICTLY`**: Controla se a validação completa do CPF (dígitos verificadores) é realizada.
 
-### 7. Executar a Aplicação
+### 6. Executar a Aplicação
 Com o ambiente virtual ativado (se estiver usando um) e todas as configurações feitas, navegue até a pasta raiz do projeto no seu terminal e execute:
 ```Bash
 python app_alunos.py
 ```
-- A interface gráfica do Sistema de Cadastro de Alunos deve iniciar.
+✔️ A interface gráfica do Sistema de Cadastro de Alunos deve iniciar.
 
 ## Troubleshooting e Notas Adicionais
 
