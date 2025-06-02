@@ -17,12 +17,8 @@ VALIDAR_CPF_RIGOROSAMENTE = VALIDAR_CPF_RIGOROSAMENTE_STR.lower() == 'true'
 
 if not VALIDAR_CPF_RIGOROSAMENTE:
     # Este log aparecerá uma vez quando o módulo for carregado, se a validação estiver desativada.
-    logger.warning("*********************************************************************")
-    logger.warning("* ATENÇÃO: A VALIDAÇÃO RIGOROSA DE DÍGITOS DO CPF ESTÁ DESATIVADA!  *")
-    logger.warning("* CPFs fictícios que sigam o formato da máscara serão permitidos.   *")
-    logger.warning("* Mude VALIDATE_CPF_STRICTLY para 'True' no arquivo .env para produção. *")
-    logger.warning("*********************************************************************")
-
+    logger.warning("ATENÇÃO: A VALIDAÇÃO RIGOROSA DE DÍGITOS DO CPF ESTÁ DESATIVADA!")
+    logger.warning("CPFs fictícios que sigam o formato da máscara serão permitidos.")
 
 def validar_cpf_completo(cpf_string):
     """

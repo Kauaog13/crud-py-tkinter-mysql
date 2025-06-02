@@ -1,16 +1,44 @@
-# Byte-compiled / optimized / DLL files
+# Arquivo .gitignore para projetos Python
+
+# --- Ambientes Virtuais ---
+# Padrão do venv do Python
+venv/
+.venv/
+env/
+.env/ # Diretório .env, se você usar um para algo além do arquivo .env
+ENV/
+# Outros nomes comuns de ambiente
+*.env
+*.venv
+env.bak/
+venv.bak/
+
+# --- Arquivo .env (para variáveis de ambiente e segredos) ---
+# Extremamente importante para não versionar segredos!
+.env
+.env.*.local
+.env.local
+# Se você tiver arquivos .env específicos de ambiente (ex: .env.dev, .env.prod)
+# e eles contiverem segredos, adicione-os também.
+# Se o db_config.py contiver senhas REAIS e você NÃO usar .env para senhas,
+# adicione a linha abaixo descomentada (mas o ideal é usar .env para senhas):
+# database/db_config.py
+
+# --- Arquivos de Bytecode e Cache do Python ---
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Distribution / packaging
-.Python
+# --- Ovos (Eggs) e Distribuição ---
+# Gerados por setuptools/distutils
+.eggs/
+*.egg-info/
+*.egg
+dist/
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
-.eggs/
 lib/
 lib64/
 parts/
@@ -19,63 +47,103 @@ var/
 wheels/
 pip-wheel-metadata/
 share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+.installed.cfg
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+# --- Arquivos de Log ---
+*.log
+logs/
+*.log.*
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
+# --- Bancos de Dados Locais (se você criar arquivos .db, .sqlite, etc.) ---
+*.sqlite3
+*.db
+*.db3
+# Se você tiver dumps de SQL que não devem ser versionados:
+# *.sql # Cuidado para não ignorar seu schema.sql se ele estiver na raiz.
+# database/*.bak # Exemplo para backups de banco de dados
+
+# --- Arquivos de Configuração de IDEs e Editores ---
+# JetBrains (PyCharm, IntelliJ, etc.)
+.idea/
+*.iml
+# VS Code
+.vscode/
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+# Eclipse
+.project
+.pydevproject
+.settings/
+# Netbeans
+nbproject/
+# Atom
+.atom/
+# Vim
+*.swp
+*.swo
+*~
+# Emacs
+*#
+.#*
+
+# --- Arquivos Gerados pelo Sistema Operacional ---
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+# Linux
+*~
+.directory # KDE specific
+
+# --- Testes e Cobertura ---
+# Relatórios de cobertura, arquivos de cache de testes
 .coverage
 .coverage.*
-.cache
+htmlcov/
+.pytest_cache/
 nosetests.xml
 coverage.xml
 *.cover
-*.py,cover
+# Tox
+.tox/
+.nox/
+# Hypothesis
 .hypothesis/
-.pytest_cache/
 
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+# --- Arquivos de Documentação Gerados (ex: Sphinx) ---
+# docs/_build/ # Se você usa Sphinx com essa estrutura
 
-# IDEs and editors
-.idea/
-.project
-.classpath
-.cproject
-.settings/
-*.tmproj
-*.sublime-project
-*.sublime-workspace
-project.xcworkspace/
-xcuserdata/
+# --- Arquivos Específicos de Ferramentas de Pacotes/Dependências ---
+# Pip
+pip-log.txt
+pip-delete-this-directory.txt
+# Conda (se usado)
+.conda/
+conda-meta/
+# Poetry (se usado)
+poetry.lock # Geralmente versionado, mas pode ser ignorado em algumas políticas
+# Pipenv (se usado)
+Pipfile.lock # Geralmente versionado
 
-# Miscellaneous
-*.DS_Store
-Thumbs.db
+# --- Outros ---
+# Arquivos de configuração local que não devem ser compartilhados
+local_settings.py
+# Arquivos de notebook Jupyter (checkpoints)
+.ipynb_checkpoints/
 
-# Configurações locais (ex: db_config.py se contiver senhas)
-# database/db_config.py # Descomente se for versionar o db_config.py sem senhas e usar um .env para elas
-*.env.*.local
-*.env.local
-# Se você usar um arquivo .env para senhas, adicione-o aqui:
-.env
+# --- Arquivos específicos do seu projeto que não devem ser versionados ---
+# Ex: arquivos temporários, uploads, etc.
+# temp/
+# uploads/
+# gui/assets/ # Se seus assets forem muito grandes ou gerados, mas geralmente são versionados.
