@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 class AplicacaoAlunos:
     def __init__(self, root):
+        # ... (conteúdo do __init__ como antes, mas remova a referência a self.validar_formato_cpf se ela só existia para o vcmd)
         self.root = root
         self.root.title("Cadastro de Alunos - FacSenac")
         self.root.geometry("1250x750") 
@@ -43,6 +44,18 @@ class AplicacaoAlunos:
         self.criar_barra_status()
 
         self.carregar_alunos_na_tabela()
+    
+    # Remova a função self.validar_formato_cpf(self, action_code, new_value_if_allowed)
+    # se ela só era usada para o validatecommand do CPF que foi substituído pela auto-formatação.
+    # A validação de formato final será feita em validar_campos_obrigatorios usando regex
+    # ou confiando na validação do backend.
+
+    # ... (manter configurar_estilos_widgets, carregar_icones, criar_widgets_barra_superior, alternar_tema) ...
+    # ... (manter validar_char_cpf_digitacao, formatar_cpf_em_tempo_real, _reset_cpf_formatting_flag) ...
+    # ... (manter validar_formato_data_digitacao, validar_formato_telefone_digitacao) ...
+    # ... (manter validar_email_e_atualizar_feedback, validar_campo_final_e_atualizar_feedback) ...
+    # ... (manter criar_widgets_formulario - já configurado para usar vcmd_cpf_char_control e formatar_cpf_em_tempo_real) ...
+    # ... (manter todos os outros métodos como criar_widgets_busca_filtro, etc. até validar_campos_obrigatorios) ...
 
     def configurar_estilos_widgets(self):
         style = ttk.Style()
@@ -58,11 +71,7 @@ class AplicacaoAlunos:
     def carregar_icones(self):
         logger.debug("Carregando ícones...")
         base_path = os.path.join(os.path.dirname(__file__), "assets")
-        icon_files = { 
-            "add": "add.png", "edit": "edit.png", "delete": "delete.png",
-            "clear": "clear.png", "theme": "theme_icon.png",
-            "export_csv": "export_csv.png"
-        }
+        icon_files = { "add": "add.png", "edit": "edit.png", "delete": "delete.png", "clear": "clear.png", "theme": "theme_icon.png", "export_csv": "export_csv.png" }
         self.icons = {}
         for name, filename in icon_files.items():
             path = os.path.join(base_path, filename)
@@ -73,9 +82,7 @@ class AplicacaoAlunos:
         logger.debug("Criando widgets da barra superior.")
         self.frame_barra_superior = ttk.Frame(self.root, padding=(5,5))
         self.frame_barra_superior.pack(fill=tk.X, side=tk.TOP, padx=10, pady=(5,0))
-        self.btn_toggle_theme = ttk.Button(self.frame_barra_superior, text="Alternar Tema", 
-                                           image=self.icons.get("theme"), compound=tk.LEFT if self.icons.get("theme") else tk.NONE,
-                                           command=self.alternar_tema)
+        self.btn_toggle_theme = ttk.Button(self.frame_barra_superior, text="Alternar Tema", image=self.icons.get("theme"), compound=tk.LEFT if self.icons.get("theme") else tk.NONE, command=self.alternar_tema)
         self.btn_toggle_theme.pack(side=tk.RIGHT)
 
     def alternar_tema(self):
@@ -88,20 +95,11 @@ class AplicacaoAlunos:
             try:
                 default_entry_bg = style.lookup('TEntry', 'fieldbackground')
                 style.configure("Normal.TEntry", fieldbackground=default_entry_bg)
-            except tk.TclError:
-                style.configure("Normal.TEntry", fieldbackground="white") 
-            
-            fields_to_reset_style = [ 
-                getattr(self, 'entry_nome', None), getattr(self, 'entry_sobrenome', None),
-                getattr(self, 'entry_email', None), getattr(self, 'entry_cpf', None),
-                getattr(self, 'entry_data_nasc', None), getattr(self, 'entry_telefone', None),
-                getattr(self, 'entry_cidade', None), getattr(self, 'entry_uf', None)
-            ]
+            except tk.TclError: style.configure("Normal.TEntry", fieldbackground="white") 
+            fields_to_reset_style = [ getattr(self, 'entry_email', None), getattr(self, 'entry_cpf', None), getattr(self, 'entry_data_nasc', None), getattr(self, 'entry_telefone', None), getattr(self, 'entry_nome', None), getattr(self, 'entry_sobrenome', None), getattr(self, 'entry_cidade', None), getattr(self, 'entry_uf', None)]
             for field in fields_to_reset_style:
                 if field and isinstance(field, ttk.Entry): field.configure(style="Normal.TEntry")
-
-            self.atualizar_status(f"Tema alterado para {new_theme}.", duracao_ms=3000)
-            logger.info(f"Tema alterado com sucesso para {new_theme}.")
+            self.atualizar_status(f"Tema alterado para {new_theme}.", duracao_ms=3000); logger.info(f"Tema alterado com sucesso para {new_theme}.")
         except tk.TclError as e:
             logger.error(f"Falha ao carregar tema '{new_theme}': {e}")
             messagebox.showwarning("Erro de Tema", f"Não foi possível carregar o tema '{new_theme}'.")
@@ -122,24 +120,19 @@ class AplicacaoAlunos:
     def formatar_cpf_em_tempo_real(self, event=None):
         if self._is_formatting_cpf_programmatically: return
         self._is_formatting_cpf_programmatically = True
-        
         valor_atual_entry = self.entry_cpf_var.get()
         try: cursor_pos_atual = self.entry_cpf.index(tk.INSERT)
         except tk.TclError: cursor_pos_atual = len(valor_atual_entry)
-
         digitos = "".join(filter(str.isdigit, valor_atual_entry))[:11]
         cpf_formatado = ""
         if len(digitos) > 9: cpf_formatado = f"{digitos[:3]}.{digitos[3:6]}.{digitos[6:9]}-{digitos[9:]}"
         elif len(digitos) > 6: cpf_formatado = f"{digitos[:3]}.{digitos[3:6]}.{digitos[6:]}"
         elif len(digitos) > 3: cpf_formatado = f"{digitos[:3]}.{digitos[3:]}"
         else: cpf_formatado = digitos
-        
         self.entry_cpf_var.set(cpf_formatado)
-
         digitos_antes_cursor_original = 0
         for i in range(min(cursor_pos_atual, len(valor_atual_entry))):
             if valor_atual_entry[i].isdigit(): digitos_antes_cursor_original += 1
-        
         nova_pos_cursor = 0; digitos_contados_no_formatado = 0
         for char_formatado in cpf_formatado:
             nova_pos_cursor += 1
@@ -153,12 +146,10 @@ class AplicacaoAlunos:
         nova_pos_cursor = min(nova_pos_cursor, len(cpf_formatado))
         try: self.entry_cpf.icursor(nova_pos_cursor)
         except tk.TclError: logger.debug("Não foi possível definir cursor no CPF (sem foco).")
-        
         self.root.after_idle(self._reset_cpf_formatting_flag)
         logger.debug(f"CPF formatado para: {cpf_formatado}, cursor em: {nova_pos_cursor} (tentativa)")
 
-    def _reset_cpf_formatting_flag(self):
-        self._is_formatting_cpf_programmatically = False
+    def _reset_cpf_formatting_flag(self): self._is_formatting_cpf_programmatically = False
 
     def validar_formato_data_digitacao(self, action_code, new_value_if_allowed):
         if action_code == '0': return True
@@ -222,14 +213,17 @@ class AplicacaoAlunos:
 
     def validar_campo_final_e_atualizar_feedback(self, event, nome_campo):
         widget = None; val_str = ""; valido = True; msg = ""
-        
         if nome_campo == 'cpf':
             widget = self.entry_cpf; val_str = self.entry_cpf_var.get().strip()
             if val_str: 
-                if not re.fullmatch(r"\d{3}\.\d{3}\.\d{3}-\d{2}", val_str): 
+                # A auto-formatação já deve ter garantido o formato visual ###.###.###-##
+                # Então, chamamos diretamente o validador de algoritmo.
+                # Se a auto-formatação não for perfeita, a validação de formato no backend pegaria.
+                # Para a GUI, podemos confiar na formatação em tempo real e validar o algoritmo aqui.
+                if not re.fullmatch(r"\d{3}\.\d{3}\.\d{3}-\d{2}", val_str): # Checagem final do formato da máscara
                     valido = False; msg = "Formato de CPF final inválido (deve ser ###.###.###-##)."
-                else: 
-                    valido, msg = validators.validar_cpf_completo(val_str)
+                else:
+                    valido, msg = validators.validar_cpf_completo(val_str) # Valida algoritmo
             else: widget.configure(style="Normal.TEntry"); return 
         elif nome_campo == 'data_nasc':
             widget = self.entry_data_nasc; val_str = self.entry_data_nasc_var.get().strip()
@@ -245,7 +239,7 @@ class AplicacaoAlunos:
             else: widget.configure(style="Normal.TEntry"); return
         elif nome_campo == 'telefone':
             widget = self.entry_telefone; val_str = self.entry_telefone_var.get().strip()
-            if val_str: valido, msg = validators.validar_telefone_formato(val_str)
+            if val_str: valido, msg = validators.validar_telefone_formato(val_str) # Usa o validador completo
             else: widget.configure(style="Normal.TEntry"); return
 
         if widget:
@@ -468,7 +462,8 @@ class AplicacaoAlunos:
 
     def validar_campos_obrigatorios(self):
         logger.debug("Executando validação final de campos obrigatórios e formatos.")
-        def aplicar_feedback_e_falhar(widget_attr_name, mensagem_erro, nome_campo_log):
+        
+        def aplicar_feedback_e_falhar(widget_attr_name, mensagem_erro, nome_campo_log): # Helper
             widget = getattr(self, widget_attr_name, None)
             if widget and isinstance(widget, ttk.Entry): widget.configure(style="Invalid.TEntry"); widget.focus_set()
             logger.warning(f"Validação GUI falhou para '{nome_campo_log}': {mensagem_erro}")
@@ -483,29 +478,43 @@ class AplicacaoAlunos:
         telefone_str=self.entry_telefone_var.get().strip(); email_str=self.entry_email_var.get().strip()
 
         if not nome or not sobrenome or not curso: messagebox.showwarning("Campos Obrigatórios", "Nome, Sobrenome e Curso são obrigatórios."); return False
+        
+        # Validação CPF: Formato da máscara visual + Validação de algoritmo (do utils)
         if cpf_str:
-            if not re.fullmatch(r"\d{3}\.\d{3}\.\d{3}-\d{2}", cpf_str): return aplicar_feedback_e_falhar('entry_cpf', "CPF: Formato inválido (###.###.###-##).", "CPF_Mascara_Final")
-            valido_cpf_alg, msg_cpf_alg = validators.validar_cpf_completo(cpf_str)
-            if not valido_cpf_alg: return aplicar_feedback_e_falhar('entry_cpf', msg_cpf_alg, "CPF_Algoritmo")
+            if not re.fullmatch(r"\d{3}\.\d{3}\.\d{3}-\d{2}", cpf_str): 
+                return aplicar_feedback_e_falhar('entry_cpf', "CPF: Formato final inválido (###.###.###-##).", "CPF_Mascara_Final")
+            valido_cpf_alg, msg_cpf_alg = validators.validar_cpf_completo(cpf_str) # Usa o validador do backend
+            if not valido_cpf_alg: 
+                return aplicar_feedback_e_falhar('entry_cpf', msg_cpf_alg, "CPF_Algoritmo")
             self.entry_cpf.configure(style="Valid.TEntry")
+        
         if email_str:
             valido_email, msg_email = validators.validar_email_formato(email_str)
             if not valido_email: return aplicar_feedback_e_falhar('entry_email', msg_email, "Email")
             self.entry_email.configure(style="Valid.TEntry")
+
         if telefone_str:
             valido_tel, msg_tel = validators.validar_telefone_formato(telefone_str)
             if not valido_tel: return aplicar_feedback_e_falhar('entry_telefone', msg_tel, "Telefone")
             self.entry_telefone.configure(style="Valid.TEntry")
+        
         if data_nasc_str_gui:
-            if not self.validar_formato_data_digitacao('1', data_nasc_str_gui): return aplicar_feedback_e_falhar('entry_data_nasc', "Data Nasc.: Formato DD/MM/AAAA inválido.", "DataNasc_Mascara")
+            # Validação da máscara de digitação
+            if not self.validar_formato_data_digitacao('1', data_nasc_str_gui): 
+                return aplicar_feedback_e_falhar('entry_data_nasc', "Data Nasc.: Formato DD/MM/AAAA inválido.", "DataNasc_Mascara")
+            # Validação semântica da data (dia/mês existe)
             try: datetime.strptime(data_nasc_str_gui, '%d/%m/%Y')
             except ValueError: return aplicar_feedback_e_falhar('entry_data_nasc', "Data Nasc.: Dia ou mês inválido.", "DataNasc_Semantica")
+            
+            # Validação de idade
             data_nasc_para_backend = self._formatar_data_para_db(data_nasc_str_gui)
             if data_nasc_para_backend:
                 valido_idade, msg_idade = validators.validar_data_nascimento_e_idade(data_nasc_para_backend)
                 if not valido_idade: return aplicar_feedback_e_falhar('entry_data_nasc', msg_idade, "DataNasc_Idade")
-            else: return aplicar_feedback_e_falhar('entry_data_nasc', "Data Nasc.: Erro interno de formatação.", "DataNasc_FormatacaoInterna")
+            else: # Erro na formatação interna, já logado por _formatar_data_para_db
+                 return aplicar_feedback_e_falhar('entry_data_nasc', "Data Nasc.: Erro interno de formatação.", "DataNasc_FormatacaoInterna")
             self.entry_data_nasc.configure(style="Valid.TEntry")
+
         logger.debug("Validação final de campos na GUI passou.")
         return True
 
@@ -554,15 +563,10 @@ class AplicacaoAlunos:
         if not caminho_arquivo: logger.info("Exportação CSV cancelada."); self.atualizar_status("Exportação cancelada.", duracao_ms=3000); return
         try:
             if not self.tree_alunos.get_children(): messagebox.showinfo("Exportar CSV", "Não há dados para exportar."); logger.info("Exportar CSV: sem dados."); return
-            
-            # Ordem das colunas como elas vêm do banco de dados (SELECT query)
             ordem_dados_db = ["id", "nome", "sobrenome", "telefone", "email", "cpf", "data_nascimento_formatada", "cidade", "uf", "curso"]
             cabecalhos = [self.map_coluna_cabecalho.get(col_key, col_key.capitalize()) for col_key in ordem_dados_db]
-            
             alunos_para_exportar = [[str(v) if v is not None else "" for v in self.tree_alunos.item(item_id)["values"]] for item_id in self.tree_alunos.get_children()]
-            
             if not alunos_para_exportar: messagebox.showinfo("Exportar CSV", "Não há dados para exportar."); return
-            
             with open(caminho_arquivo, 'w', newline='', encoding='utf-8') as arquivo_csv:
                 escritor_csv = csv.writer(arquivo_csv, delimiter=';')
                 escritor_csv.writerow(cabecalhos); logger.debug(f"Exportando cabeçalhos CSV: {cabecalhos}")
